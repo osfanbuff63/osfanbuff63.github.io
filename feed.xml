@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.2">Jekyll</generator><link href="https://osfanbuff63.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://osfanbuff63.github.io/" rel="alternate" type="text/html" /><updated>2022-07-21T14:00:40+00:00</updated><id>https://osfanbuff63.github.io/feed.xml</id><title type="html">osfanbuff63</title><subtitle>osfanbuff63&apos;s thoughts on various things, and updates on important stuff and things! (P.S. Exploring is fun!)</subtitle><entry><title type="html">How To: Turning a Raspberry Pi into a Plex server</title><link href="https://osfanbuff63.github.io/2022/07/11/turn-your-raspberry-pi-into-plex-server.html" rel="alternate" type="text/html" title="How To: Turning a Raspberry Pi into a Plex server" /><published>2022-07-11T13:02:00+00:00</published><updated>2022-07-11T13:02:00+00:00</updated><id>https://osfanbuff63.github.io/2022/07/11/turn-your-raspberry-pi-into-plex-server</id><content type="html" xml:base="https://osfanbuff63.github.io/2022/07/11/turn-your-raspberry-pi-into-plex-server.html"><![CDATA[<!--TODO: make an FTP guide inside of this using vsftpd?-->
+<h2 id="how-to-turn-a-raspberry-pi-into-a-plex-server">How to turn a Raspberry Pi into a Plex server</h2>
+
+<p>The <a href="https://raspberrypi.org">Raspberry Pi</a> is a great device to run many things off of, including servers. I’ve spent some time recently moving my <a href="https://plex.tv">Plex</a> library to a Raspberry Pi , so I thought I’d spend some time writing a guide on it.</p>
+
+<p class="notice--info">I’ll be using Ubuntu instead of Raspberry Pi OS, for multiple reasons, but this guide may work on Raspberry Pi OS (note: untested!), given I believe <code class="language-plaintext highlighter-rouge">plexmediaserver</code> is in <code class="language-plaintext highlighter-rouge">apt</code>?</p>
+
+<h2 id="what-you-need">What you need</h2>
+
+<h3 id="required">Required</h3>
+
+<ul>
+  <li>A <a href="https://raspberrypi.org">Raspberry Pi</a> (mine uses a Raspberry Pi 4 model B with 4GB of RAM<!-- TODO: find out if this is right-->) with access to the Internet</li>
+  <li>A microSD card to run the OS off of. At a minimum, this should have 16GB of storage, but I got <a href="https://www.microcenter.com/product/626486/Premium_128GB_microSDXC_Card_UHS-I_Flash_Memory_Card_C10_U3_V30_A1_Micro_SD_Card_with_Adapter">this 128GB drive from Micro Center</a> for $13, so if you live near one I recommend that.
+    <ul>
+      <li>If your computer doesn’t have a SD card slot, you can purchase an <a href="https://www.amazon.com/UGREEN-Reader-Memory-Windows-Simultaneously/dp/B01EFPX9XA/ref=sr_1_2?keywords=usb+sd+card+adapter&amp;qid=1657498695&amp;refinements=p_89%3AUGREEN&amp;rnid=2528832011&amp;s=electronics&amp;sr=1-2">SD to USB adapter</a>.</li>
+      <li>If your microSD card doesn’t come with an microSD to SD adapter (which most do) and you don’t have one, you can purchase one <a href="https://www.amazon.com/SanDisk-microSD-Memory-Adapter-MICROSD-ADAPTER/dp/B0047WZOOO/ref=sr_1_3?crid=3V0RZF2SW2WAV&amp;keywords=microsd+to+sd&amp;qid=1657498787&amp;s=electronics&amp;sprefix=micro+sd+to+sd%2Celectronics%2C92&amp;sr=1-3">here</a> <em>note: I am not an Amazon affiliate!</em></li>
+    </ul>
+  </li>
+  <li>A computer with access to the Internet</li>
+</ul>
+
+<h3 id="recommended">Recommended</h3>
+
+<ul>
+  <li>A USB drive (this is only needed if your Plex media size is larger than your SD card size subtracted by your OS size - Ubuntu is around 9GB to my knowledge)</li>
+  <li>A case for your Raspberry Pi, preferably with a fan and/or heatsinks (I use <a href="https://www.microconnectors.com/aluminum-raspberry-pi-4-model-b-case-with-fan/">this one</a>)</li>
+  <li>If not included with your case, an appropriate screwdriver</li>
+  <li>A Plex account, this can be made for free at <a href="https://www.plex.tv/sign-up/">plex.tv/sign-up/</a></li>
+</ul>
+
+<h2 id="the-guide">The guide</h2>
+
+<h3 id="part-1-setting-up-our-microsd-card">Part 1: Setting up our microSD card</h3>
+
+<p class="notice--info">You might be able to use a USB drive instead for this part, but Raspberry Pis boot to a microSD card if it is inserted, so for ease I’m using one.</p>
+
+<p class="notice--info">Screenshots in this section are from Windows unless noted.</p>
+
+<p class="notice--danger">The data on your SD card will be cleared! Make sure to make backups!</p>
+
+<p>Let’s get started!</p>
+
+<ol>
+  <li>Log onto any computer with access to the Internet, and download the Raspberry Pi Imager from <a href="https://www.raspberrypi.com/software/">this link</a> for your OS.</li>
+  <li>Run the file you just downloaded. On Windows, this is <code class="language-plaintext highlighter-rouge">imager_latest.exe</code>.</li>
+  <li>Follow the installation process, and check <code class="language-plaintext highlighter-rouge">Run Raspberry Pi Imager</code> at the end.</li>
+</ol>
+<figure>
+<p><img src="/assets/images/rp-plex/raspberry-pi-imager.png" alt="Raspberry Pi Imager" /></p>
+  <figcaption>You should be on a screen like this!</figcaption>
+</figure>
+<ol>
+  <li>Plug your microSD card into a reader on your computer, using adapters if needed.</li>
+  <li>Select your operating system of choice. I used Ubuntu Desktop, but any OS should be fine (or Ubuntu Server, which I recommend, but I made the mistake of getting Desktop instead of Server :P)</li>
+</ol>
+<figure>
+<p><img src="/assets/images/rp-plex/select-os-ubuntu.png" alt="OS selection" /></p>
+  <figcaption>Select an OS, Ubuntu is pictured</figcaption>
+</figure>
+<ol>
+  <li>Select your SD card.</li>
+  <li>Select <code class="language-plaintext highlighter-rouge">Write</code>.</li>
+  <li>Be patient, it can take a while. Once complete, remove the microSD card from your computer.</li>
+</ol>
+
+<p class="notice--info">You can now turn off this computer if you don’t plan to use it later.</p>
+
+<h3 id="part-2-installing-our-os">Part 2: Installing our OS</h3>
+
+<p class="notice--info">If you plan to use a case for your Raspberry Pi, put that on before continuing.</p>
+
+<p class="notice--warning">Don’t have the power plugged into your Raspberry Pi until it says otherwise!</p>
+
+<p class="notice--info">The steps may be slightly different for different models.</p>
+
+<h4 id="part-21-getting-ready">Part 2.1: Getting ready</h4>
+
+<ol>
+  <li>Insert the microSD card into your Raspberry Pi, along with a mouse and keyboard and a mini-HDMI to HDMI cable.</li>
+  <li>Plug the mini-HDMI to HDMI cable into a monitor. A TV will work.</li>
+  <li>Insert the USB-C power to the Raspberry Pi and watch it boot up! A rainbow boot screen is normal.</li>
+</ol>
+
+<h4 id="part-22-installing-ubuntu">Part 2.2: Installing Ubuntu</h4>
+
+<ol>
+  <li>Once on a <code class="language-plaintext highlighter-rouge">Welcome to Ubuntu</code> screen, continue through the system setup.</li>
+  <li>You should select your language, location, connect to the Internet and many other things in this step. Enter this information correctly.</li>
+  <li>Once done, if prompted to restart, comply.</li>
+  <li>Make sure to run the Software Updater if not prompted that the software is out of date.</li>
+</ol>
+
+<h3 id="part-3-setting-up-plex-media-server">Part 3: Setting up Plex Media Server</h3>
+
+<p class="notice--info">If you are changing your Plex server from a different device, make sure to copy all the files to a USB drive before continuing.</p>
+
+<p class="notice--warning">Don’t have the USB drive plugged in while booting the system. The first time my Raspberry Pi tried to boot to it I think…?</p>
+
+<p class="notice--info">Make sure you are finished with OS setup &amp; updates, and if you didn’t connect to the Internet do so. This is necessary for the server to work correctly.</p>
+
+<ol>
+  <li>If you aren’t in your OS, turn on your Raspberry Pi.</li>
+  <li>Plug in your USB drive with the Plex server files on it or download them from the cloud if you used that method.</li>
+  <li>Open a terminal and run these commands: (If you don’t want to run all these yourself, grab <a href="/assets/files/rp-plex/plexmediaserver.sh">this shell script</a> and run <code class="language-plaintext highlighter-rouge">sudo bash plexmediaserver.sh</code>.)</li>
+</ol>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">sudo </span>apt <span class="nb">install </span>curl <span class="c"># I'm not sure this is included by default</span>
+curl https://downloads.plex.tv/plex-keys/PlexSign.key | <span class="nb">sudo </span>apt-key add -
+<span class="nb">echo </span>deb https://downloads.plex.tv/repo/deb public main | <span class="nb">sudo tee</span> /etc/apt/sources.list.d/plexmediaserver.list
+<span class="nb">sudo </span>apt update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt upgrade <span class="c"># This makes sure we are up-to-date</span>
+<span class="nb">sudo </span>apt <span class="nb">install </span>plexmediaserver</code></pre></figure>
+
+<ol>
+  <li>Open the Apps menu from the bottom left corner and select <code class="language-plaintext highlighter-rouge">plexmediaserver</code>. This will open a tab in your browser (if you are following this tutorial with Ubuntu - Firefox will open)</li>
+  <li>Follow the setup. I’ve included pictures with captions for you.</li>
+</ol>
+<figure>
+<p><img src="/assets/images/rp-plex/plex-media-server-1.png" alt="Select a name" /></p>
+</figure>
+
+<figure>
+<p><img src="/assets/images/rp-plex/plex-media-server-2.png" alt="Import libraries" /></p>
+</figure>
+
+<figure>
+<p><img src="/assets/images/rp-plex/plex-media-server-3.png" alt="Done!" /></p>
+  <figcaption>Once here, press ‘Done’. This will open a Plex tab in your browser. Note however, that your library won’t show up immediately. Credit: <a href="https://support.plex.tv/articles/200288896-basic-setup-wizard/">Plex</a></figcaption>
+</figure>
+
+<h3 id="part-4-stopping-the-firewall">Part 4: Stopping the firewall</h3>
+
+<p>If you have a firewall enabled, you will need to let Plex through it.</p>
+
+<ol>
+  <li>Open a terminal.</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">sudo ufw status</code> and if it isn’t enabled, skip this section.</li>
+  <li>If it <em>is</em>, then run these commands or <a href="/assets/files/rp-plex/firewall.sh">this shell script</a>: (Source: <a href="https://support.plex.tv/articles/201543147-what-network-ports-do-i-need-to-allow-through-my-firewall/">Plex</a>. Read that if you want to know what the ports do)</li>
+</ol>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">sudo </span>ufw allow 32400/tcp <span class="c"># REQUIRED</span>
+<span class="nb">sudo </span>ufw allow 1900/udp <span class="c"># optional</span>
+<span class="nb">sudo </span>ufw allow 5353/udp <span class="c"># optional</span>
+<span class="nb">sudo </span>ufw allow 8324/tcp <span class="c"># optional</span>
+<span class="nb">sudo </span>ufw allow 32410,32412,32413,32414/udp <span class="c"># optional</span>
+<span class="nb">sudo </span>ufw allow 32469/udy <span class="c"># optional</span></code></pre></figure>
+
+<h3 id="part-5-bonus-accessing-your-plex-library">Part 5 (Bonus): Accessing your Plex library</h3>
+
+<p>Having a Plex library is almost no good without a device to access it. Plex has apps for all major operating systems, found in the store. You can also download a client for:</p>
+
+<ul>
+  <li>Windows: From <a href="https://www.plex.tv/media-server-downloads/#plex-app">here</a> or via <code class="language-plaintext highlighter-rouge">winget install --id Plex.Plex</code></li>
+  <li>macOS: From <a href="https://www.plex.tv/media-server-downloads/#plex-app">here</a></li>
+  <li>Linux: From the <a href="snap://">Snap Store</a>, or <code class="language-plaintext highlighter-rouge">sudo snap install plex-client</code>, or this embed link:</li>
+</ul>
+
+<iframe src="https://snapcraft.io/plex-desktop/embedded?button=black" frameborder="0" width="100%" height="300px" style="border: 1px solid #CCC; border-radius: 2px;"></iframe>
+
+<ul>
+  <li>Android: From the <a href="https://plexapp.onelink.me/Sm8U/android/">Google Play Store</a></li>
+  <li>iOS: From the <a href="https://plexapp.onelink.me/Sm8U/ios/">App Store</a></li>
+</ul>
+
+<p>For any other downloads, check <a href="https://www.plex.tv/media-server-downloads/#plex-app">Plex’s website</a>.</p>
+
+<h2 id="final-notes">Final notes</h2>
+
+<p>Leave a comment if you have any questions! This guide took a while to make, just like the other one, and so I hope this has helped you! If you don’t have a GitHub account, <a href="https://github.com/join">sign up for one</a> or <a href="/contact">contact me using another method</a>.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[How to turn a Raspberry Pi into a Plex server]]></summary></entry><entry><title type="html">How To: Installing Ubuntu on a Chromebook</title><link href="https://osfanbuff63.github.io/2022/07/04/install-ubuntu-on-chromebook.html" rel="alternate" type="text/html" title="How To: Installing Ubuntu on a Chromebook" /><published>2022-07-04T13:45:00+00:00</published><updated>2022-07-04T13:45:00+00:00</updated><id>https://osfanbuff63.github.io/2022/07/04/install-ubuntu-on-chromebook</id><content type="html" xml:base="https://osfanbuff63.github.io/2022/07/04/install-ubuntu-on-chromebook.html"><![CDATA[<h2 id="how-to-install-ubuntu-on-a-chromebook">How to install Ubuntu on a Chromebook</h2>
+
+<p>This guide serves as an alternative to <a href="https://ubuntu.com/tutorials/install-ubuntu-on-chromebook#1-overview">Canonical’s own guide</a>. This guide has become outdated over the years, and so this is an alternate guide.</p>
+
+<h2 id="the-problems-with-crouton">The problems with Crouton</h2>
+
+<p>The script Canonical uses in that guide is <a href="https://github.com/dnschneid/crouton">crouton</a>, which <a href="https://github.com/dnschneid/crouton/discussions/4654">went maintance-only in late 2021</a>, and so the default (xenial) is EOL, and focal is in “beta”, and jammy isn’t supported at all, although there <a href="https://github.com/dnschneid/crouton/pull/4727">is a PR for it</a>. You also end up with a very barebones version of Ubuntu, which isn’t ideal on most Chromebooks. (And if that isn’t the case, then why would you want Ubuntu? Chrome OS is probably fine for your purposes)</p>
+
+<p>In theory, you could also use <a href="https://chromium.googlesource.com/chromiumos/docs/+/HEAD/containers_and_vms.md">Crostini</a>, but I’m just assuming that you want more than that.</p>
+
+<h2 id="the-advantanges-of-this-method">The advantanges of this method</h2>
+
+<p>This method allows to install a <strong>full Ubuntu setup</strong> with most likely <strong>support for all versions</strong> and therefore . As well, it requires almost <strong>nothing</strong> to work and <strong>no hardware modification</strong>. Hardware modification can be made to make this method even better, but I’ll leave a link to how to do that.</p>
+
+<p>This guide was tested on an Acer Chromebook 14, and works perfectly. Offtopic, but the battery in that one died and so it needs to be plugged in :P</p>
+
+<p class="notice--info">This method will only work on x86 Chromebooks, and not ARM ones.</p>
+
+<h2 id="the-guide">The Guide</h2>
+
+<h3 id="what-you-need">What you need</h3>
+
+<p>You will need:</p>
+
+<ul>
+  <li>Your Chromebook to turn into a Ubuntu machine</li>
+  <li>A PC with the ability to create a bootable USB stick for Ubuntu. If you don’t have a system, most likely you can do it via Crostini.</li>
+  <li>Access to the Internet</li>
+</ul>
+
+<h3 id="part-1-entering-developer-mode">Part 1: Entering Developer Mode</h3>
+
+<p>For any of this to work, we need to enter ‘developer mode’ on our Chromebook. Here’s how:</p>
+
+<ol>
+  <li>Turn your Chromebook off if it was already on.</li>
+  <li>Turn your Chromebook on, but simultaneously hold the <code class="language-plaintext highlighter-rouge">Esc</code>, <code class="language-plaintext highlighter-rouge">Refresh</code> and <code class="language-plaintext highlighter-rouge">Power</code> keys all at once. This will pop up a screen relating to Recovery Mode.</li>
+  <li>Once you hit that screen, hit <code class="language-plaintext highlighter-rouge">Ctrl</code> + <code class="language-plaintext highlighter-rouge">D</code>. If you see a prompt that OS verification is off, press <code class="language-plaintext highlighter-rouge">Ctrl</code> + <code class="language-plaintext highlighter-rouge">D</code> again.</li>
+</ol>
+
+<p class="notice--danger">This will wipe all files on your system! Make sure you take backups if you have any important files on your Chromebook!</p>
+
+<p class="notice--info">The OS verification prompt will show up on every boot now, but you can press <code class="language-plaintext highlighter-rouge">Ctrl</code> + <code class="language-plaintext highlighter-rouge">D</code> to go into Developer Mode.</p>
+
+<h3 id="part-2-enabling-booting-from-a-usb-and-installing-seabios">Part 2: Enabling Booting from a USB and installing SeaBIOS</h3>
+
+<p>Now we’ll enable booting from a USB drive. We’ll also install custom firmware, but this isn’t strictly needed, it just makes the process simpler.</p>
+
+<p class="notice--info">If you want to install a UEFI firmware instead, you will need to disable hardware write-protect, which requires hardware modification. This way, you don’t need to modify your hardware, although I do recommend it (I haven’t done it with my own Chromebook though, since I don’t have a small enough screwdriver.)</p>
+
+<h4 id="part-21-enabling-flags">Part 2.1: Enabling flags</h4>
+
+<ol>
+  <li>On any Chrome OS screen, press <code class="language-plaintext highlighter-rouge">Ctrl</code> + <code class="language-plaintext highlighter-rouge">Alt</code> + <code class="language-plaintext highlighter-rouge">Right Arrow</code> to open a shell.</li>
+  <li>Sign in as <code class="language-plaintext highlighter-rouge">chronos</code> with no password and you’ll have a full Bash shell and <code class="language-plaintext highlighter-rouge">sudo</code> access off the bat.</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">sudo crossystem dev_boot_usb=1</code> and then <code class="language-plaintext highlighter-rouge">sudo crossystem dev_boot_legacy=1</code>.</li>
+  <li>Run this set of commands. This will take you to an interface where you can install SeaBIOS.</li>
+</ol>
+
+<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">cd</span><span class="p">;</span> curl <span class="nt">-LO</span> mrchromebox.tech/firmware-util.sh
+<span class="nb">sudo install</span> <span class="nt">-Dt</span> /usr/local/bin <span class="nt">-m</span> 755 firmware-util.sh
+<span class="nb">sudo </span>firmware-util.sh</code></pre></figure>
+
+<h4 id="part-22-installing-seabios">Part 2.2: Installing SeaBIOS</h4>
+
+<p>You should see a screen like this one, if you don’t, try <a href="#part-21-enabling-flags">step 4 again</a>.</p>
+<figure>
+<p><img src="/assets/images/chromeos-ubuntu/fwutil_cros_wp-on.png" alt="mrchromebox.tech picture" /></p>
+  <figcaption>Credit: <a href="https://mrchromebox.tech">mrchromebox.tech</a></figcaption>
+</figure>
+
+<ol>
+  <li>Select option 1 by pressing 1.</li>
+  <li>If it asks you for a default boot device, select ‘Internal storage’</li>
+  <li>If it asks you for any other options, select ‘No’.</li>
+  <li>Turn off your Chromebook.</li>
+</ol>
+
+<h3 id="part-3-making-an-ubuntu-live-usb">Part 3: Making an Ubuntu Live USB</h3>
+
+<p>Now we’ll make a Ubuntu Live USB drive. This can be done at any point, but we will need it in the next step.</p>
+
+<p class="notice--info">BalenaEtcher is not the only application that can do this, but it is recommended since it works on Windows, macOS, and Linux. <a href="https://rufus.ie/">Rufus</a> is an alternative for Windows.</p>
+
+<p class="notice--danger">Your USB drive will be formatted when you flash the image to it! Make backups of any important files before continuing!</p>
+
+<ol>
+  <li>Download the latest Ubuntu Desktop image for your preferred version from <a href="https://ubuntu.com/download/desktop">here</a>.</li>
+  <li>Download the latest version of BalenaEtcher for your OS from <a href="https://www.balena.io/etcher/">here</a>.</li>
+  <li>Plug a USB drive into your PC with <em>at least</em> 8GB of space. 12GB of space is recommended.</li>
+  <li>Open BalenaEtcher and select the Ubuntu Desktop image you downloaded, then select your USB drive. Select <code class="language-plaintext highlighter-rouge">Flash!</code> when you are ready! Be patient, as this can take a while.</li>
+  <li>Once it is complete, unplug the USB drive from your computer and keep it in a safe place.</li>
+</ol>
+
+<h3 id="part-4-booting-off-of-the-usb-and-installing-ubuntu">Part 4: Booting off of the USB and installing Ubuntu</h3>
+
+<p>Now we get to install Ubuntu on our Chromebook.</p>
+
+<h4 id="part-41-booting-into-seabios">Part 4.1: Booting into SeaBIOS</h4>
+
+<ol>
+  <li>Plug the USB drive that you flashed Ubuntu on to in <a href="#part-3-making-an-ubuntu-live-usb">step 3</a></li>
+  <li>Turn on your Chromebook. You’ll see the normal <code class="language-plaintext highlighter-rouge">OS verification is off</code> screen, but instead of pressing <code class="language-plaintext highlighter-rouge">Ctrl</code> + <code class="language-plaintext highlighter-rouge">D</code>, press <code class="language-plaintext highlighter-rouge">Ctrl</code> + <code class="language-plaintext highlighter-rouge">L</code>.</li>
+</ol>
+
+<h4 id="part-42-booting-to-the-usb-drive-from-seabios">Part 4.2: Booting to the USB drive from SeaBIOS</h4>
+
+<p>You should see a screen that looks something like this:</p>
+<figure>
+<p><img src="/assets/images/chromeos-ubuntu/seabios_boot_1.png" alt="SeaBIOS" /></p>
+  <figcaption>Credit: <a href="https://mrchromebox.tech">mrchromebox.tech</a></figcaption>
+</figure>
+
+<ol>
+  <li>Within around 3 seconds from going into SeaBIOS, press <code class="language-plaintext highlighter-rouge">Esc</code> to open the boot menu. If you miss the timeout and boot into Chrome OS, turn your Chromebook off and then continue from <a href="#part-41-booting-into-seabios">Part 4.1</a>. It may take a few tries.</li>
+  <li>Select your USB drive by pressing the number located next to it. I recommend only having one plugged in so that you are sure you select the right one.</li>
+</ol>
+<figure>
+<p><img src="/assets/images/chromeos-ubuntu/seabios_boot_2.png" alt="SeaBIOS Boot Menu" /></p>
+  <figcaption>Select your USB drive. Credit: <a href="https://mrchromebox.tech">mrchromebox.tech</a></figcaption>
+</figure>
+
+<ol>
+  <li>You should boot onto your Ubuntu Live USB! If it doesn’t, turn off your Chromebook and then continue from <a href="#part-41-booting-into-seabios">Part 4.1</a>. It will take some time depending on your Chromebook however.</li>
+</ol>
+
+<h4 id="part-43-installing-ubuntu">Part 4.3: Installing Ubuntu</h4>
+
+<p>This part of the guide is almost identical to Canonical’s <a href="https://ubuntu.com/tutorials/install-ubuntu-desktop#5-installation-setup">Install Ubuntu Desktop</a> tutorial, but I’ll lead you through it anyway.</p>
+
+<p>You should be sitting on a screen that looks like this before you continue:</p>
+<figure>
+<p><img src="/assets/images/chromeos-ubuntu/welcome-screen.png" alt="Ubuntu welcome screen" /></p>
+  <figcaption>Credit: <a href="https://ubuntu.com/tutorials/install-ubuntu-desktop#4-boot-from-usb-flash-drive">Canonical</a></figcaption>
+</figure>
+
+<p class="notice--info">I recommend plugging in a mouse if you have one at this point, but a trackpad works too.</p>
+
+<ol>
+  <li>Unless you want to try out Ubuntu first, select <code class="language-plaintext highlighter-rouge">Install Ubuntu</code>.</li>
+  <li>Select your keyboard layout and press <code class="language-plaintext highlighter-rouge">Continue</code>.</li>
+  <li>Unless you want a bare-bones install or your Chromebook doesn’t have enough space somehow, select <code class="language-plaintext highlighter-rouge">Normal installation</code>. I recommend selecting <code class="language-plaintext highlighter-rouge">Download updates while installing Ubuntu</code> and <code class="language-plaintext highlighter-rouge">Install third-party software for graphics and Wi-Fi hardware and additional media formats</code>.</li>
+</ol>
+<figure>
+<p><img src="/assets/images/chromeos-ubuntu/download-updates.png" alt="Recommended options" /></p>
+  <figcaption>Credit: <a href="https://ubuntu.com/tutorials/install-ubuntu-desktop#4-boot-from-usb-flash-drive">Canonical</a></figcaption>
+</figure>
+
+<ol>
+  <li>Select <code class="language-plaintext highlighter-rouge">Erase disk and install Ubuntu</code>. You could dual-boot with Chrome OS, but it’s probably not worth effort.</li>
+  <li>If you would like to encrypt your device, select Advanced features… &gt; Use LVM with the new Ubuntu installation &gt; Encrypt the new Ubuntu installation for security, then enter a security key.</li>
+  <li>Select <code class="language-plaintext highlighter-rouge">Install Now</code>, and select your region. If you are connected to the Internet, it will auto-detect it.</li>
+  <li>Create your login details, then be patient as Ubuntu installs.</li>
+  <li>Once it is complete, follow the prompt to restart your system.</li>
+</ol>
+
+<h4 id="part-44-booting-into-ubuntu">Part 4.4: Booting into Ubuntu</h4>
+
+<ol>
+  <li>With your device on the <code class="language-plaintext highlighter-rouge">OS verification is off</code> screen, press <code class="language-plaintext highlighter-rouge">Ctrl</code> + <code class="language-plaintext highlighter-rouge">L</code> again, but don’t press <code class="language-plaintext highlighter-rouge">Esc</code>. This time, it will boot to the internal storage, which will be Ubuntu instead of Chrome OS.</li>
+  <li>Sign in with the login details that you made while installing Ubuntu.</li>
+</ol>
+
+<p>You are done! Welcome to Ubuntu running on Chrome OS! Consider running <code class="language-plaintext highlighter-rouge">sudo apt update &amp;&amp; sudo apt upgrade</code> in the terminal</p>
+
+<h2 id="final-notes">Final notes</h2>
+
+<p>I hope you enjoy using Ubuntu on what once was a Chromebook. In theory, this guide will work for even installing Windows, but <a href="#part-3-making-an-ubuntu-live-usb">Part 3</a>, <a href="#part-42-booting-to-the-usb-drive-from-seabios">Part 4.2</a> and <a href="#part-43-installing-ubuntu">Part 4.3</a> would be different. With Ubuntu, you’ve opened up so many more possiblities for your Chromebook!</p>
+
+<p>This took around 2 hours to write, and so I hope it helps someone out here. Feel free to leave a comment below with any comments or suggestions, or <a href="/contact">contact me</a>! Also, would you like to see a guide on Ubuntu setup? Leave a comment if so! I’ll be watching :P</p>]]></content><author><name></name></author><summary type="html"><![CDATA[How to install Ubuntu on a Chromebook]]></summary></entry><entry><title type="html">Corrections and extended thoughts on Achievements</title><link href="https://osfanbuff63.github.io/2022/06/18/github-thoughts-correction.html" rel="alternate" type="text/html" title="Corrections and extended thoughts on Achievements" /><published>2022-06-18T22:46:00+00:00</published><updated>2022-06-18T22:46:00+00:00</updated><id>https://osfanbuff63.github.io/2022/06/18/github-thoughts-correction</id><content type="html" xml:base="https://osfanbuff63.github.io/2022/06/18/github-thoughts-correction.html"><![CDATA[<h2 id="corrections-and-more-food-for-thought">Corrections and more food for thought</h2>
+
+<p>If you haven’t read my <a href="/2022/06/15/github-thoughts">original thoughts</a>, I highly recommend it before reading this post.</p>
+
+<p>So @Livedollar brought up on the <a href="https://github.com/orgs/github-community/discussions/18153#discussioncomment-2974715">feedback discussion</a> that the achievements more than likely will actually won’t bring <em>as</em> much bad, since you’ll get it by following the GitHub tutorial for a PR. Personally, this makes me take back my thought that they should remove the <code class="language-plaintext highlighter-rouge">YOLO</code> advancement, so it brings me down to one major point:</p>
+
+<ul>
+  <li>Make advancements only achievable once</li>
+</ul>
+
+<p>This is potentially controversal, but I think that takes care of the farming problem <em>perfectly</em>. You see, if you make it so that you only get an advancement once - in the case of YOLO, via the GitHub tutorial - and that reduces the spam problem.</p>
+
+<p>I’d be very interested to hear thoughts on this.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Corrections and more food for thought]]></summary></entry><entry><title type="html">New VS Code extension page!</title><link href="https://osfanbuff63.github.io/2022/06/16/vscode-extensions.html" rel="alternate" type="text/html" title="New VS Code extension page!" /><published>2022-06-16T23:55:00+00:00</published><updated>2022-06-16T23:55:00+00:00</updated><id>https://osfanbuff63.github.io/2022/06/16/vscode-extensions</id><content type="html" xml:base="https://osfanbuff63.github.io/2022/06/16/vscode-extensions.html"><![CDATA[<h2 id="vs-code-extension-page-finished">VS Code Extension page finished!</h2>
+
+<p>I spent a really long time (like an hour lol) on this page, which ranks my top 10 VS Code extensions. Here’s a link: <a href="/vscode-extensions">vscode-extensions</a>. Hope you all enjoy!</p>
+
+<p>~ osfan</p>]]></content><author><name></name></author><summary type="html"><![CDATA[VS Code Extension page finished!]]></summary></entry><entry><title type="html">My thoughts on GitHub’s achievements</title><link href="https://osfanbuff63.github.io/2022/06/15/github-thoughts.html" rel="alternate" type="text/html" title="My thoughts on GitHub’s achievements" /><published>2022-06-15T19:35:00+00:00</published><updated>2022-06-15T19:35:00+00:00</updated><id>https://osfanbuff63.github.io/2022/06/15/github-thoughts</id><content type="html" xml:base="https://osfanbuff63.github.io/2022/06/15/github-thoughts.html"><![CDATA[<h2 id="thoughts-on-achievements">Thoughts on Achievements</h2>
+
+<p>UPDATE 6-18-2022: Read <a href="/2022/06/18/github-thoughts-correction">this post</a> for some corrections and my latest thoughts. Still read this first though!</p>
+
+<p>As stated in a few new features GitHub has introduced lately (namely: <a href="https://github.blog/2022-06-09-introducing-achievements-recognizing-the-many-stages-of-a-developers-coding-journey/">achievements</a>), I thought I’d spend some time to detail my thoughts on the situation. This is one of a series I’ll be doing when I have time.</p>
+
+<p>This very controversal feature is a step in the wrong direction, and then back. For example, the <code class="language-plaintext highlighter-rouge">YOLO</code> achievement (merge a PR unreviewed), is next to useless, and encourages bad ideas for open-source projects. It’s also pretty easy to see that people would try to farm them, meaning worse contributions all-around. Overall, this seems like GitHub trying to encourage contributions (note: which is not bad at all!), but in a way that encourages <em>bad</em> contributions instead of good ones, which is simply annoying to project developers, rather than helpful.</p>
+
+<p>My suggestion is that GitHub can 1) Remove the YOLO advancement (as detailed above), 2) Make it so that achievements aren’t farmable, and 3) Disable viewing of them by default. #2 meaning that GitHub would make it so that <em>potentially</em> you wouldn’t be able to get achievements more than once, which sort of solves the farming problem, and #3 meaning that you would have to opt-in to achievements.</p>
+
+<p>There’s a lot that could be done here, and it hasn’t been done right quite yet - but I still think that it could be redone better.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Thoughts on Achievements]]></summary></entry><entry><title type="html">Hello World!</title><link href="https://osfanbuff63.github.io/2022/06/12/first-post.html" rel="alternate" type="text/html" title="Hello World!" /><published>2022-06-12T11:20:45+00:00</published><updated>2022-06-12T11:20:45+00:00</updated><id>https://osfanbuff63.github.io/2022/06/12/first-post</id><content type="html" xml:base="https://osfanbuff63.github.io/2022/06/12/first-post.html"><![CDATA[<h2 id="hello-world">Hello World!</h2>
+
+<p>This is my new site, for various things. It’s still in alpha state, but works at least :P</p>
+
+<p>Thanks for all these people for making cool stuff:</p>
+
+<ul>
+  <li>Jekyll’s developers - for Jekyll</li>
+  <li>GitHub for GitHub Pages</li>
+  <li>All the people who I use actions from</li>
+  <li>RiiConnect24 for getting me into Jekyll in the first place</li>
+  <li>YOU! For reading this post!</li>
+</ul>
+
+<p>There’s much more to come, stay tuned!</p>
+
+<p>osfanbuff63</p>
+
+<pre><code class="language-mcfunction">execute as @a if score osfanbuff63 matches 1 run tellraw @a {"text":"Hello World!","color":"gold"}
+</code></pre>]]></content><author><name></name></author><summary type="html"><![CDATA[Hello World!]]></summary></entry></feed>
